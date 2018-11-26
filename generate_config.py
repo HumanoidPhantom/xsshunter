@@ -141,8 +141,8 @@ print ""
 print ""
 print "What postgres hostname? "
 print "(default postgres)"
-settings["postgreql_hostname"] = raw_input( "Postgres hostname: ")
-p
+p_hostname = raw_input( "Postgres hostname? ")
+settings["postgeql_hostname"] = p_hostname if p_hostname != "" else "postgres"
 print ""
 print ""
 print "What postgres user is this service using? "
