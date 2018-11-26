@@ -657,7 +657,7 @@ class DeleteCollectedPageHandler(BaseHandler):
 
 def make_app():
     return tornado.web.Application([
-        (r"/api/register", RegisterHandler),
+        #(r"/api/register", RegisterHandler),
         (r"/api/login", LoginHandler),
         (r"/api/collected_pages", GetCollectedPagesHandler),
         (r"/api/delete_injection", DeleteInjectionHandler),
