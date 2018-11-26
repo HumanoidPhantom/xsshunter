@@ -139,6 +139,12 @@ print "(ex. yourpersonal@gmail.com)"
 settings["abuse_email"] = raw_input( "Abuse/Contact email: ")
 print ""
 print ""
+print "What postgres hostname? "
+print "(default postgres)"
+settings["postgreql_hostname"] = raw_input( "Postgres hostname: ")
+p
+print ""
+print ""
 print "What postgres user is this service using? "
 print "(ex. xsshunter)"
 settings["postgreql_username"] = raw_input( "Postgres username: ")
