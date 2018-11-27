@@ -3,7 +3,6 @@ import tornado.template
 import logging.handlers
 import tornado.options
 import tornado.ioloop
-import ConfigParser
 import dns.resolver
 import tornado.web
 import logging
@@ -25,18 +24,8 @@ from models.injection_record import Injection
 from models.request_record import InjectionRequest
 from models.collected_page import CollectedPage
 from binascii import a2b_base64
-from ConfigParser import SafeConfigParser
 
 logging.basicConfig(filename="logs/detailed.log",level=logging.DEBUG)
-
-try:
-    config = SafeConfigParser()
-    config.read('.env')
-    if not config.has_section('main'):
-        raise ConfigParser.NoSectionError('main')
-except ConfigParser.Error:
-    print "Error reading .env, have you created one? (Hint: Try running ./generate_config.py)"
-    exit()
 
 CSRF_EXEMPT_ENDPOINTS = [ "/api/contactus", "/api/register", "/", "/api/login", "/health", "/favicon.ico", "/page_callback", "/api/record_injection" ]
 FORBIDDEN_SUBDOMAINS = [ "www", "api" ]
@@ -58,7 +47,7 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_header("X-XSS-Protection", "1; mode=block")
         self.set_header("X-Content-Type-Options", "nosniff")
         self.set_header("Access-Control-Allow-Headers", "X-CSRF-Token, Content-Type")
-        self.set_header("Access-Control-Allow-Origin", "https://www." + config.get('main', "xssh_domain"))
+        self.set_header("Access-Control-Allow-Origin", "https://www." + os.getenv("xssh_domain", default=""))
         self.set_header("Access-Control-Allow-Methods", "OPTIONS, PUT, DELETE, POST, GET")
         self.set_header("Access-Control-Allow-Credentials", "true")
         self.set_header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -144,7 +133,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def get_user_from_subdomain( self ):
         domain = self.request.headers.get( 'Host' )
-        domain_parts = domain.split( "." + config.get('main', "xssh_domain"))
+        domain_parts = domain.split( "." + os.getenv("xssh_domain", default=""))
         subdomain = domain_parts[0]
         return session.query( User ).filter_by( domain=subdomain ).first()
 
@@ -235,19 +224,19 @@ def email_sent_callback( response ):
 
 def send_email( to, subject, body, attachment_file, body_type="html" ):
     if body_type == "html":
-        body += "<br /><img src=\"https://api." + config.get('main', "xssh_domain") + "/" + attachment_file.encode( "utf-8" ) + "\" />" # I'm so sorry.
+        body += "<br /><img src=\"https://api." + os.getenv("xssh_domain", default="") + "/" + attachment_file.encode( "utf-8" ) + "\" />" # I'm so sorry.
 
     email_data = {
-        "from": urllib.quote_plus( config.get('main', "xssh_email_from") ),
+        "from": urllib.quote_plus( os.getenv("xssh_email_from", default="") ),
         "to": urllib.quote_plus( to ),
         "subject": urllib.quote_plus( subject ),
         body_type: urllib.quote_plus( body ),
     }
 
-    thread = unirest.post( "https://api.mailgun.net/v3/" + config.get('main', "xssh_mailgun_sending_domain") + "/messages",
+    thread = unirest.post( "https://api.mailgun.net/v3/" + os.getenv("xssh_mailgun_sending_domain", default="") + "/messages",
             headers={"Accept": "application/json"},
             params=email_data,
-            auth=("api", config.get('main', "xssh_mailgun_api_key") ),
+            auth=("api", os.getenv("xssh_mailgun_api_key", default="") ),
             callback=email_sent_callback)
 
 def send_javascript_pgp_encrypted_callback_message( email_data, email ):
@@ -258,7 +247,7 @@ def send_javascript_callback_message( email, injection_db_record ):
 
     injection_data = injection_db_record.get_injection_blob()
 
-    email_html = loader.load( "xss_email_template.htm" ).generate( injection_data=injection_data, domain=config.get('main', "xssh_domain") )
+    email_html = loader.load( "xss_email_template.htm" ).generate( injection_data=injection_data, domain=os.getenv("xssh_domain", default="") )
     return send_email( email, "[XSS Hunter] XSS Payload Fired On " + injection_data['vulnerable_page'], email_html, injection_db_record.screenshot )
 
 class UserInformationHandler(BaseHandler):
@@ -459,7 +448,7 @@ class ContactUsHandler(BaseHandler):
         email_body = "Name: " + contact_data["name"] + "\n"
         email_body += "Email: " + contact_data["email"] + "\n"
         email_body += "Message: " + contact_data["body"] + "\n"
-        send_email( config.get('main', "xssh_abuse_email"), "XSSHunter Contact Form Submission", email_body, "", "text" )
+        send_email( os.getenv("xssh_abuse_email", default=""), "XSSHunter Contact Form Submission", email_body, "", "text" )
 
         self.write({
             "success": True,
@@ -676,7 +665,7 @@ def make_app():
         (r"/uploads/(.*)", tornado.web.StaticFileHandler, {"path": "uploads/"}),
         (r"/api/record_injection", InjectionRequestHandler),
         (r"/(.*)", HomepageHandler),
-    ], cookie_secret=config.get('main', "xssh_cookie_secret"))
+    ], cookie_secret=os.getenv("xssh_cookie_secret", default=""))
 
 if __name__ == "__main__":
     args = sys.argv
