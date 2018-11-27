@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import binascii
-import yaml
 import os
+from ConfigParser import SafeConfigParser
 
 nginx_template = """
 server {
@@ -27,8 +27,8 @@ server {
     # Redirect HTTPS to www
     listen 443;
     ssl on;
-    ssl_certificate /etc/nginx/ssl/fakedomain.com.crt; # Wildcard SSL certificate
-    ssl_certificate_key /etc/nginx/ssl/fakedomain.com.key; # Wildcard SSL certificate key
+    ssl_certificate /etc/nginx/ssl/cert.pem; # Wildcard SSL certificate
+    ssl_certificate_key /etc/nginx/ssl/privkey.pem; # Wildcard SSL certificate key
 
     server_name fakedomain.com;
     location / {
@@ -40,8 +40,8 @@ server {
     # API proxy
     listen 443;
     ssl on;
-    ssl_certificate /etc/nginx/ssl/fakedomain.com.crt; # Wildcard SSL certificate
-    ssl_certificate_key /etc/nginx/ssl/fakedomain.com.key; # Wildcard SSL certificate key
+    ssl_certificate /etc/nginx/ssl/cert.pem; # Wildcard SSL certificate
+    ssl_certificate_key /etc/nginx/ssl/privkey.pem; # Wildcard SSL certificate key
 
     server_name *.fakedomain.com;
     access_log /var/log/nginx/fakedomain.com.vhost.access.log;
@@ -81,8 +81,8 @@ server {
    server_name www.fakedomain.com;
    client_max_body_size 500M;
    ssl on;
-   ssl_certificate /etc/nginx/ssl/fakedomain.com.crt; # Wildcard SSL certificate
-   ssl_certificate_key /etc/nginx/ssl/fakedomain.com.key; # Wildcard SSL certificate key
+   ssl_certificate /etc/nginx/ssl/cert.pem; # Wildcard SSL certificate
+   ssl_certificate_key /etc/nginx/ssl/privkey.pem; # Wildcard SSL certificate key
 
 
    location / {
@@ -92,14 +92,11 @@ server {
 }
 """
 
-settings = {
-    "email_from":"",
-    "mailgun_api_key":"",
-    "mailgun_sending_domain":"",
-    "domain": "",
-    "abuse_email": "",
-    "cookie_secret": "",
-}
+config = SafeConfigParser()
+config.read('.env')
+
+if not config.has_section('main'):
+    config.add_section('main')
 
 print """
  __   __ _____ _____   _    _             _            
@@ -117,53 +114,51 @@ print "What is the base domain name you will be using? "
 print "(ex. localhost, www.example.com)"
 hostname = raw_input( "Domain? ")
 if hostname != "":
-	settings["domain"] = hostname
-nginx_template = nginx_template.replace( "fakedomain.com", settings["domain"] )
+    config.set('main', 'xssh_domain', hostname)	
+nginx_template = nginx_template.replace( "fakedomain.com", hostname )
 
 print "Great! Now let's setup your Mailgun account to send XSS alerts to."
 print ""
 print "Enter your API key: "
 print "(ex. key-8da843ff65205a61374b09b81ed0fa35)"
-settings["mailgun_api_key"] = raw_input( "Mailgun API key: ")
+config.set('main', 'xssh_mailgun_api_key', raw_input( "Mailgun API key: "))
 print ""
 print "What is your Mailgun domain? "
 print "(ex. example.com)"
-settings["mailgun_sending_domain"] = raw_input( "Mailgun domain: ")
+config.set('main', 'xssh_mailgun_sending_domain', raw_input( "Mailgun domain: "))
 print ""
 print "What email address is sending the payload fire emails?: "
 print "(ex. no-reply@example.com)"
-settings["email_from"] = raw_input( "Sending email address: ")
+config.set('main', 'xssh_email_from', raw_input( "Sending email address: "))
 print ""
 print "Where should abuse/contact emails go?: "
 print "(ex. yourpersonal@gmail.com)"
-settings["abuse_email"] = raw_input( "Abuse/Contact email: ")
+config.set('main', 'xssh_abuse_email', raw_input( "Abuse/Contact email: "))
 print ""
 print ""
-print "What postgres hostname? "
+print "What is your postgres hostname? "
 print "(default postgres)"
 p_hostname = raw_input( "Postgres hostname? ")
-settings["postgreql_hostname"] = p_hostname if p_hostname != "" else "postgres"
+config.set('main', 'xssh_postgres_hostname', p_hostname if p_hostname != "" else "postgres"))
 print ""
 print ""
 print "What postgres user is this service using? "
 print "(ex. xsshunter)"
-settings["postgreql_username"] = raw_input( "Postgres username: ")
+config.set('main', 'xssh_postgres_username', raw_input( "Postgres username: "))
 print ""
 print "What is the postgres user's password? "
 print "(ex. @!$%@^%UOFGJOEJG$)"
-settings["postgreql_password"] = raw_input( "Postgres password: ")
+config.set('main', 'xssh_postgres_password', raw_input( "Postgres password: "))
 print ""
 print "What is the postgres user's DB? "
 print "(ex. xsshunter)"
-settings["postgres_db"] = raw_input( "Postgres DB: ")
+config.set('main', 'xssh_postgres_db', raw_input( "Postgres DB: "))
 print ""
 print "Generating cookie secret..."
-settings["cookie_secret"] = binascii.hexlify( os.urandom(50) )
+config.set('main', 'xssh_cookie_secret', binascii.hexlify( os.urandom(50))
 
-yaml_config = yaml.dump( settings, default_flow_style=False)
-file_handler = open( "config.yaml", "w" )
-file_handler.write( yaml_config )
-file_handler.close()
+with open('.env', 'w') as f:
+    config.write(f)
 
 print "Minting new nginx configuration file..."
 file_handler = open( "default", "w" )
@@ -176,9 +171,8 @@ This can be done by running the following:
 sudo cp default /etc/nginx/sites-enabled/default
 
 Also, please ensure your wildcard SSL certificate and key are available at the following locations:
-/etc/nginx/ssl/""" + hostname + """.crt; # Wildcard SSL certificate
-/etc/nginx/ssl/""" + hostname + """.key; # Wildcard SSL key
+/etc/nginx/ssl/cert.pem; # Wildcard SSL certificate
+/etc/nginx/ssl/privkey.pem; # Wildcard SSL key
 
 Good luck hunting for XSS!
-							-mandatory
 """

@@ -3,11 +3,14 @@ import tornado.ioloop
 import tornado.web
 import tornado.template
 import dns.resolver
-import yaml
+import ConfigParser
+from ConfigParser import SafeConfigParser
 
 try:
-    with open( '../config.yaml', 'r' ) as f:
-        settings = yaml.safe_load( f )
+    config = SafeConfigParser()
+    config.read('.env')
+    if not config.has_section('main'):
+        raise ConfigParser.NoSectionError('main')
 except IOError:
     print "Error reading config.yaml, have you created one? (Hint: Try running ./generate_config.py)"
     exit()
