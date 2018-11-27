@@ -28,6 +28,7 @@ from binascii import a2b_base64
 logging.basicConfig(filename="logs/detailed.log",level=logging.DEBUG)
 
 CSRF_EXEMPT_ENDPOINTS = [ "/api/contactus", "/api/register", "/", "/api/login", "/health", "/favicon.ico", "/page_callback", "/api/record_injection" ]
+
 FORBIDDEN_SUBDOMAINS = [ "www", "api" ]
 
 with open( "probe.js", "r" ) as probe_handler:
@@ -299,60 +300,60 @@ def authenticate_user( request_handler, in_username ):
         "csrf_token": csrf_token,
     }))
 
-class RegisterHandler(BaseHandler):
-    @gen.coroutine
-    def post(self):
-        user_data = json.loads(self.request.body)
-        user_data["email_enabled"] = True
-        if not self.validate_input( ["email","username","password", "domain"], user_data ):
-            return
-
-        if session.query( User ).filter_by( username=user_data.get( "username" ) ).first():
-            return_dict = {
-                "success": False,
-                "invalid_fields": ["username (already registered!)"],
-            }
-            self.write( json.dumps( return_dict ) )
-            return
-
-	domain = user_data.get( "domain" )
-        if session.query( User ).filter_by( domain=domain ).first() or domain in FORBIDDEN_SUBDOMAINS:
-            return_dict = {
-                "success": False,
-                "invalid_fields": ["domain (already registered!)"],
-            }
-            self.write( json.dumps( return_dict ) )
-            return
-
-        new_user = User()
-
-        return_dict = {}
-        allowed_attributes = ["pgp_key", "full_name", "domain", "email", "password", "username", "email_enabled" ]
-        invalid_attribute_list = []
-        for key, value in user_data.iteritems():
-            if key in allowed_attributes:
-                return_data = new_user.set_attribute( key, user_data.get( key ) )
-                if return_data != True:
-                    invalid_attribute_list.append( key )
-
-        new_user.generate_user_id()
-
-        if invalid_attribute_list:
-            return_dict["success"] = False
-            return_dict["invalid_fields"] = invalid_attribute_list
-            return_dict = {
-                "success": False,
-                "invalid_fields": ["username (already registered!)"],
-            }
-            self.write( json.dumps( return_dict ) )
-            return
-
-        self.logit( "New user successfully registered with username of " + user_data["username"] )
-        session.add( new_user )
-        session.commit()
-
-        authenticate_user( self, user_data.get( "username" ) )
-        return
+#class RegisterHandler(BaseHandler):
+#    @gen.coroutine
+#    def post(self):
+#        user_data = json.loads(self.request.body)
+#        user_data["email_enabled"] = True
+#        if not self.validate_input( ["email","username","password", "domain"], user_data ):
+#            return
+#
+#        if session.query( User ).filter_by( username=user_data.get( "username" ) ).first():
+#            return_dict = {
+#                "success": False,
+#                "invalid_fields": ["username (already registered!)"],
+#            }
+#            self.write( json.dumps( return_dict ) )
+#            return
+#
+#	domain = user_data.get( "domain" )
+#        if session.query( User ).filter_by( domain=domain ).first() or domain in FORBIDDEN_SUBDOMAINS:
+#            return_dict = {
+#                "success": False,
+#                "invalid_fields": ["domain (already registered!)"],
+#            }
+#            self.write( json.dumps( return_dict ) )
+#            return
+#
+#        new_user = User()
+#
+#        return_dict = {}
+#        allowed_attributes = ["pgp_key", "full_name", "domain", "email", "password", "username", "email_enabled" ]
+#        invalid_attribute_list = []
+#        for key, value in user_data.iteritems():
+#            if key in allowed_attributes:
+#                return_data = new_user.set_attribute( key, user_data.get( key ) )
+#                if return_data != True:
+#                    invalid_attribute_list.append( key )
+#
+#        new_user.generate_user_id()
+#
+#        if invalid_attribute_list:
+#            return_dict["success"] = False
+#            return_dict["invalid_fields"] = invalid_attribute_list
+#            return_dict = {
+#                "success": False,
+#                "invalid_fields": ["username (already registered!)"],
+#            }
+#            self.write( json.dumps( return_dict ) )
+#            return
+#
+#        self.logit( "New user successfully registered with username of " + user_data["username"] )
+#        session.add( new_user )
+#        session.commit()
+#
+#        authenticate_user( self, user_data.get( "username" ) )
+#        return
 
 class LoginHandler(BaseHandler):
     @gen.coroutine
