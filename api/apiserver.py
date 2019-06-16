@@ -405,55 +405,55 @@ class CallbackHandler(BaseHandler):
                 send_javascript_callback_message( owner_user.email, injection_db_record )
             self.write( '{}' )
 
-class HomepageHandler(BaseHandler):
-    def get(self, path):
+#class HomepageHandler(BaseHandler):
+#    def get(self, path):
+#
+#        self.set_header("Access-Control-Allow-Origin", "*")
+#        self.set_header("Access-Control-Allow-Methods", "OPTIONS, PUT, DELETE, POST, GET")
+#        self.set_header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Origin, Authorization, Accept, Accept-Encoding")
+#
+#        domain = self.request.headers.get( 'Host' )
+#
+#        user = self.get_user_from_subdomain()
+#
+#        if user == None:
+#            self.throw_404()
+#            return
+#
+#        new_probe = probejs
+#        new_probe = new_probe.replace( '[HOST_URL]', "https://" + domain )
+#        new_probe = new_probe.replace( '[PGP_REPLACE_ME]', json.dumps( user.pgp_key ) )
+#        new_probe = new_probe.replace( '[CHAINLOAD_REPLACE_ME]', json.dumps( user.chainload_uri ) )
+#        new_probe = new_probe.replace( '[COLLECT_PAGE_LIST_REPLACE_ME]', json.dumps( user.get_page_collection_path_list() ) )
+#
+#        if user.pgp_key != "":
+#            with open( "templates/pgp_encrypted_template.txt", "r" ) as template_handler:
+#                new_probe = new_probe.replace( '[TEMPLATE_REPLACE_ME]', json.dumps( template_handler.read() ))
+#        else:
+#            new_probe = new_probe.replace( '[TEMPLATE_REPLACE_ME]', json.dumps( "" ))
+#
+#        if self.request.uri != "/":
+#            probe_id = self.request.uri.split( "/" )[1]
+#            self.write( new_probe.replace( "[PROBE_ID]", probe_id ) )
+#        else:
+#            self.write( new_probe )
 
-        self.set_header("Access-Control-Allow-Origin", "*")
-        self.set_header("Access-Control-Allow-Methods", "OPTIONS, PUT, DELETE, POST, GET")
-        self.set_header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Origin, Authorization, Accept, Accept-Encoding")
-
-        domain = self.request.headers.get( 'Host' )
-
-        user = self.get_user_from_subdomain()
-
-        if user == None:
-            self.throw_404()
-            return
-
-        new_probe = probejs
-        new_probe = new_probe.replace( '[HOST_URL]', "https://" + domain )
-        new_probe = new_probe.replace( '[PGP_REPLACE_ME]', json.dumps( user.pgp_key ) )
-        new_probe = new_probe.replace( '[CHAINLOAD_REPLACE_ME]', json.dumps( user.chainload_uri ) )
-        new_probe = new_probe.replace( '[COLLECT_PAGE_LIST_REPLACE_ME]', json.dumps( user.get_page_collection_path_list() ) )
-
-        if user.pgp_key != "":
-            with open( "templates/pgp_encrypted_template.txt", "r" ) as template_handler:
-                new_probe = new_probe.replace( '[TEMPLATE_REPLACE_ME]', json.dumps( template_handler.read() ))
-        else:
-            new_probe = new_probe.replace( '[TEMPLATE_REPLACE_ME]', json.dumps( "" ))
-
-        if self.request.uri != "/":
-            probe_id = self.request.uri.split( "/" )[1]
-            self.write( new_probe.replace( "[PROBE_ID]", probe_id ) )
-        else:
-            self.write( new_probe )
-
-class ContactUsHandler(BaseHandler):
-    def post( self ):
-        contact_data = json.loads(self.request.body)
-        if not self.validate_input( ["name","email", "body"], contact_data ):
-            return
-
-        self.logit( "Someone just used the 'Contact Us' form." )
-
-        email_body = "Name: " + contact_data["name"] + "\n"
-        email_body += "Email: " + contact_data["email"] + "\n"
-        email_body += "Message: " + contact_data["body"] + "\n"
-        send_email( os.getenv("xssh_abuse_email", default=""), "XSSHunter Contact Form Submission", email_body, "", "text" )
-
-        self.write({
-            "success": True,
-        })
+#class ContactUsHandler(BaseHandler):
+#    def post( self ):
+#        contact_data = json.loads(self.request.body)
+#        if not self.validate_input( ["name","email", "body"], contact_data ):
+#            return
+#
+#        self.logit( "Someone just used the 'Contact Us' form." )
+#
+#        email_body = "Name: " + contact_data["name"] + "\n"
+#        email_body += "Email: " + contact_data["email"] + "\n"
+#        email_body += "Message: " + contact_data["body"] + "\n"
+#        send_email( os.getenv("xssh_abuse_email", default=""), "XSSHunter Contact Form Submission", email_body, "", "text" )
+#
+#        self.write({
+#            "success": True,
+#        })
 
 class ResendInjectionEmailHandler(BaseHandler):
     def post( self ):
@@ -657,7 +657,7 @@ def make_app():
         (r"/api/delete_collected_page", DeleteCollectedPageHandler),
         (r"/api/user", UserInformationHandler),
         (r"/api/payloadfires", GetXSSPayloadFiresHandler),
-        (r"/api/contactus", ContactUsHandler),
+        #(r"/api/contactus", ContactUsHandler),
         (r"/api/resend_injection_email", ResendInjectionEmailHandler),
         (r"/api/logout", LogoutHandler),
         (r"/js_callback", CallbackHandler),
@@ -665,7 +665,7 @@ def make_app():
         (r"/health", HealthHandler),
         (r"/uploads/(.*)", tornado.web.StaticFileHandler, {"path": "uploads/"}),
         (r"/api/record_injection", InjectionRequestHandler),
-        (r"/(.*)", HomepageHandler),
+        #(r"/(.*)", HomepageHandler),
     ], cookie_secret=os.getenv("xssh_cookie_secret", default=""))
 
 if __name__ == "__main__":

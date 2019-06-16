@@ -26,33 +26,33 @@ class DebugOverrideStaticCaching(tornado.web.StaticFileHandler):
     def set_extra_headers(self, path):
         self.set_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
 
-class HomepageHandler(BaseHandler):
-    def get(self):
-        loader = tornado.template.Loader( "templates/" )
-        self.write( loader.load( "homepage.htm" ).generate() )
-
-class FeaturesHandler(BaseHandler):
-    def get(self):
-        loader = tornado.template.Loader( "templates/" )
-        self.write( loader.load( "features.htm" ).generate( domain=DOMAIN ) )
-
-class SignUpHandler(BaseHandler):
-    def get(self):
-        loader = tornado.template.Loader( "templates/" )
-        self.write( loader.load( "signup.htm" ).generate( domain=DOMAIN ) )
-
-class ContactHandler(BaseHandler):
-    def get(self):
-        loader = tornado.template.Loader( "templates/" )
-        self.write( loader.load( "contact.htm" ).generate() )
+#class HomepageHandler(BaseHandler):
+#    def get(self):
+#        loader = tornado.template.Loader( "templates/" )
+#        self.write( loader.load( "homepage.htm" ).generate() )
+#
+#class FeaturesHandler(BaseHandler):
+#    def get(self):
+#        loader = tornado.template.Loader( "templates/" )
+#        self.write( loader.load( "features.htm" ).generate( domain=DOMAIN ) )
+#
+#class SignUpHandler(BaseHandler):
+#    def get(self):
+#        loader = tornado.template.Loader( "templates/" )
+#        self.write( loader.load( "signup.htm" ).generate( domain=DOMAIN ) )
+#
+#class ContactHandler(BaseHandler):
+#    def get(self):
+#        loader = tornado.template.Loader( "templates/" )
+#        self.write( loader.load( "contact.htm" ).generate() )
 
 def make_app():
     return tornado.web.Application([
-        (r"/", HomepageHandler),
+        #(r"/", HomepageHandler),
         (r"/app", XSSHunterApplicationHandler),
-        (r"/features", FeaturesHandler),
-        (r"/signup", SignUpHandler),
-        (r"/contact", ContactHandler),
+        #(r"/features", FeaturesHandler),
+        #(r"/signup", SignUpHandler),
+        #(r"/contact", ContactHandler),
         (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "static/"}),
     ])
 
