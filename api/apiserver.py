@@ -665,7 +665,7 @@ def make_app():
         (r"/health", HealthHandler),
         (r"/uploads/(.*)", tornado.web.StaticFileHandler, {"path": "uploads/"}),
         (r"/api/record_injection", InjectionRequestHandler),
-        #(r"/(.*)", HomepageHandler),
+        (r"/(.*)", HomepageHandler),
     ], cookie_secret=os.getenv("xssh_cookie_secret", default=""))
 
 if __name__ == "__main__":
