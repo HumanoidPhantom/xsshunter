@@ -405,38 +405,38 @@ class CallbackHandler(BaseHandler):
                 send_javascript_callback_message( owner_user.email, injection_db_record )
             self.write( '{}' )
 
-#class HomepageHandler(BaseHandler):
-#    def get(self, path):
-#
-#        self.set_header("Access-Control-Allow-Origin", "*")
-#        self.set_header("Access-Control-Allow-Methods", "OPTIONS, PUT, DELETE, POST, GET")
-#        self.set_header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Origin, Authorization, Accept, Accept-Encoding")
-#
-#        domain = self.request.headers.get( 'Host' )
-#
-#        user = self.get_user_from_subdomain()
-#
-#        if user == None:
-#            self.throw_404()
-#            return
-#
-#        new_probe = probejs
-#        new_probe = new_probe.replace( '[HOST_URL]', "https://" + domain )
-#        new_probe = new_probe.replace( '[PGP_REPLACE_ME]', json.dumps( user.pgp_key ) )
-#        new_probe = new_probe.replace( '[CHAINLOAD_REPLACE_ME]', json.dumps( user.chainload_uri ) )
-#        new_probe = new_probe.replace( '[COLLECT_PAGE_LIST_REPLACE_ME]', json.dumps( user.get_page_collection_path_list() ) )
-#
-#        if user.pgp_key != "":
-#            with open( "templates/pgp_encrypted_template.txt", "r" ) as template_handler:
-#                new_probe = new_probe.replace( '[TEMPLATE_REPLACE_ME]', json.dumps( template_handler.read() ))
-#        else:
-#            new_probe = new_probe.replace( '[TEMPLATE_REPLACE_ME]', json.dumps( "" ))
-#
-#        if self.request.uri != "/":
-#            probe_id = self.request.uri.split( "/" )[1]
-#            self.write( new_probe.replace( "[PROBE_ID]", probe_id ) )
-#        else:
-#            self.write( new_probe )
+class HomepageHandler(BaseHandler):
+    def get(self, path):
+
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Methods", "OPTIONS, PUT, DELETE, POST, GET")
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Origin, Authorization, Accept, Accept-Encoding")
+
+        domain = self.request.headers.get( 'Host' )
+
+        user = self.get_user_from_subdomain()
+
+        if user == None:
+            self.throw_404()
+            return
+
+        new_probe = probejs
+        new_probe = new_probe.replace( '[HOST_URL]', "https://" + domain )
+        new_probe = new_probe.replace( '[PGP_REPLACE_ME]', json.dumps( user.pgp_key ) )
+        new_probe = new_probe.replace( '[CHAINLOAD_REPLACE_ME]', json.dumps( user.chainload_uri ) )
+        new_probe = new_probe.replace( '[COLLECT_PAGE_LIST_REPLACE_ME]', json.dumps( user.get_page_collection_path_list() ) )
+
+        if user.pgp_key != "":
+            with open( "templates/pgp_encrypted_template.txt", "r" ) as template_handler:
+                new_probe = new_probe.replace( '[TEMPLATE_REPLACE_ME]', json.dumps( template_handler.read() ))
+        else:
+            new_probe = new_probe.replace( '[TEMPLATE_REPLACE_ME]', json.dumps( "" ))
+
+        if self.request.uri != "/":
+            probe_id = self.request.uri.split( "/" )[1]
+            self.write( new_probe.replace( "[PROBE_ID]", probe_id ) )
+        else:
+            self.write( new_probe )
 
 #class ContactUsHandler(BaseHandler):
 #    def post( self ):
